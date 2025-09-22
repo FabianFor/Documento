@@ -309,29 +309,40 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFf5f5f5),
-      appBar: AppBar(
-        title: Text(
-          '🍕 Sistema de Pedidos',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.black54,
-          indicator: BoxDecoration(
-            color: Color(0xFF2f3d4c),
-            borderRadius: BorderRadius.zero,
-          ),
-          tabs: [
-            Tab(text: 'Pedidos'),
-            Tab(text: 'Historial'),
-          ],
-        ),
+appBar: AppBar(
+  backgroundColor: Colors.white,
+  elevation: 2,
+  centerTitle: true,
+  title: Text(
+    'Pizzas Congeladas',
+    style: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+      color: const Color.fromARGB(255, 0, 0, 0),
+    ),
+  ),
+  bottom: TabBar(
+    controller: _tabController,
+    labelColor: const Color.fromARGB(255, 0, 0, 0),
+    unselectedLabelColor: Colors.grey[500],
+    indicatorColor: const Color.fromARGB(255, 0, 0, 0),
+    indicatorWeight: 3,
+    indicatorSize: TabBarIndicatorSize.label,
+    labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+    unselectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+    tabs: [
+      Tab(
+        icon: Icon(Icons.shopping_cart, size: 22),
+        text: 'Pedidos',
       ),
+      Tab(
+        icon: Icon(Icons.history, size: 22),
+        text: 'Historial',
+      ),
+    ],
+  ),
+),
+
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -549,85 +560,102 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
     );
   }
 
-  List<Widget> _buildPizzaItems(List<String> pizzaKeys) {
-    return pizzaKeys.map((pizzaKey) {
-      final cost = pizzas[pizzaKey]?['cost'] ?? 0;
-      final suggested = pizzas[pizzaKey]?['suggested'] ?? 0;
-      final name = pizzaNames[pizzaKey] ?? '';
-      
-      return Container(
-        margin: EdgeInsets.only(bottom: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+List<Widget> _buildPizzaItems(List<String> pizzaKeys) {
+  return pizzaKeys.map((pizzaKey) {
+    final cost = pizzas[pizzaKey]?['cost'] ?? 0;
+    final suggested = pizzas[pizzaKey]?['suggested'] ?? 0;
+    final name = pizzaNames[pizzaKey] ?? '';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 16), // 🔹 más espacio entre ítems
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 🔹 Fila principal (nombre + cantidad)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              Row(
                 children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                  _buildQuantityButton(Icons.remove, () => _updateQuantity(pizzaKey, -1)),
+                  SizedBox(width: 14),
+                  Container(
+                    width: 30,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${quantities[pizzaKey]}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Costo: S/${cost.toStringAsFixed(2)} | Sugerido: S/${suggested.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
+                  SizedBox(width: 14),
+                  _buildQuantityButton(Icons.add, () => _updateQuantity(pizzaKey, 1)),
                 ],
               ),
-            ),
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _updateQuantity(pizzaKey, -1),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(Icons.remove, size: 16, color: Colors.black54),
-                  ),
+            ],
+          ),
+
+          SizedBox(height: 8), // 🔹 más aire entre nombre y precios
+
+          // 🔹 Fila de precios
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Costo: S/${cost.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: const Color.fromARGB(255, 255, 0, 0),
                 ),
-                SizedBox(width: 12),
-                Container(
-                  width: 24,
-                  child: Text(
-                    '${quantities[pizzaKey]}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+              ),
+              Text(
+                'Precio sugerido: S/${suggested.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color.fromARGB(255, 26, 145, 26),
                 ),
-                SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () => _updateQuantity(pizzaKey, 1),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(Icons.add, size: 16, color: Colors.black54),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Divider(height: 1, color: Colors.grey[300]),
+        ],
+      ),
+    );
+  }).toList();
+}
+
+
+// Botón de + y -
+Widget _buildQuantityButton(IconData icon, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 18, color: Colors.black87),
+    ),
+  );
+}
+
 
   Widget _buildHistoryTab() {
     return Column(
@@ -692,123 +720,139 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
     );
   }
 
-  Widget _buildOrderItem(int index) {
-    final order = orderHistory[index];
-    
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  order.date.substring(0, 16),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Text(
-                  'S/${order.total.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green[700],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Cliente: ${order.clientName}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+Widget _buildOrderItem(int index) {
+  final order = orderHistory[index];
+
+  // 🔹 Calcular totales
+  int totalPizzas = 0;
+  int totalPersonales = 0;
+
+  order.items.forEach((key, value) {
+    if (key.toLowerCase().contains("personal")) {
+      totalPersonales += value;
+    } else {
+      totalPizzas += value;
+    }
+  });
+
+  return Card(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    elevation: 2,
+    margin: EdgeInsets.only(bottom: 12),
+    child: Padding(
+      padding: EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 🔹 Fecha y Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                order.date.substring(0, 16),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
+              Text(
+                'S/ ${order.total.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[700],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+
+          // 🔹 Cliente
+          Text(
+            "Cliente: ${order.clientName}",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-            SizedBox(height: 4),
-            Text(
-              'Entrega: ${order.deliveryDay}',
-              style: TextStyle(fontSize: 12, color: Colors.black87),
-            ),
-            SizedBox(height: 8),
-            ...order.items.entries
+          ),
+          SizedBox(height: 4),
+
+          // 🔹 Entrega
+          Text(
+            "Entrega: ${order.deliveryDay}",
+            style: TextStyle(fontSize: 13, color: Colors.black87),
+          ),
+          SizedBox(height: 10),
+
+          // 🔹 Lista de productos
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: order.items.entries
                 .where((entry) => entry.value > 0)
                 .map((entry) {
               final pizzaName = pizzaNames[entry.key] ?? entry.key;
               return Text(
-                '$pizzaName: ${entry.value} unidades',
-                style: TextStyle(fontSize: 12, color: Colors.black87),
+                "• $pizzaName: ${entry.value} unid.",
+                style: TextStyle(fontSize: 13, color: Colors.black87),
               );
             }).toList(),
-            SizedBox(height: 4),
-            Text(
-              'Precio sugerido: S/${order.suggestedTotal.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
+          ),
+          Divider(height: 18),
+
+          // 🔹 Resumen Totales
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Total BI Pizzas: $totalPizzas",
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              Text("Total Personales: $totalPersonales",
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+            ],
+          ),
+          SizedBox(height: 6),
+
+          // 🔹 Precio sugerido
+          Text(
+            "Precio sugerido: S/ ${order.suggestedTotal.toStringAsFixed(2)}",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.deepOrange,
+            ),
+          ),
+          SizedBox(height: 12),
+
+          // 🔹 Botones
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _editOrder(index),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  child: Text("Editar",
+                      style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _editOrder(index),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    child: Text(
-                      'Editar',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
+              SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _deleteOrder(index),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 17, 0),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 10),
                   ),
+                  child: Text("Eliminar",
+                      style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                 ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _deleteOrder(index),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
