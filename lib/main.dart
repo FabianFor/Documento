@@ -25,7 +25,6 @@ class PizzaOrder {
   final String date;
   final String clientName;
   final String deliveryDay;
-  final String deliveryMonth;
   final Map<String, int> items;
   final double total;
   final double suggestedTotal;
@@ -34,7 +33,6 @@ class PizzaOrder {
     required this.date,
     required this.clientName,
     required this.deliveryDay,
-    required this.deliveryMonth,
     required this.items,
     required this.total,
     required this.suggestedTotal,
@@ -45,7 +43,6 @@ class PizzaOrder {
       'date': date,
       'clientName': clientName,
       'deliveryDay': deliveryDay,
-      'deliveryMonth': deliveryMonth,
       'items': items,
       'total': total,
       'suggestedTotal': suggestedTotal,
@@ -57,7 +54,6 @@ class PizzaOrder {
       date: json['date'],
       clientName: json['clientName'],
       deliveryDay: json['deliveryDay'],
-      deliveryMonth: json['deliveryMonth'],
       items: Map<String, int>.from(json['items']),
       total: json['total'].toDouble(),
       suggestedTotal: json['suggestedTotal'].toDouble(),
@@ -76,7 +72,6 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
   
   // Controllers
   final TextEditingController _clientNameController = TextEditingController();
-  final TextEditingController _monthController = TextEditingController();
 
   // Pizza data
   final Map<String, Map<String, double>> pizzas = {
@@ -124,7 +119,6 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
   void dispose() {
     _tabController.dispose();
     _clientNameController.dispose();
-    _monthController.dispose();
     super.dispose();
   }
 
@@ -188,7 +182,6 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
       selectedDay = '';
       editingOrderIndex = -1;
       _clientNameController.clear();
-      _monthController.clear();
     });
   }
 
@@ -205,11 +198,6 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
       return;
     }
     
-    if (_monthController.text.trim().isEmpty) {
-      _showAlert('⚠️ Ingresa el mes de entrega');
-      return;
-    }
-    
     if (_clientNameController.text.trim().isEmpty) {
       _showAlert('⚠️ Ingresa el nombre del cliente');
       return;
@@ -219,7 +207,6 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
       date: DateTime.now().toString().substring(0, 19),
       clientName: _clientNameController.text.trim(),
       deliveryDay: selectedDay,
-      deliveryMonth: _monthController.text.trim(),
       items: Map<String, int>.from(quantities),
       total: _calculateTotal(),
       suggestedTotal: _calculateSuggestedTotal(),
@@ -250,7 +237,6 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
       quantities = Map<String, int>.from(order.items);
       selectedDay = order.deliveryDay;
       _clientNameController.text = order.clientName;
-      _monthController.text = order.deliveryMonth;
       editingOrderIndex = index;
     });
     
@@ -322,28 +308,27 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFf5f5f5),
       appBar: AppBar(
-        title: Column(
-          children: [
-            Text('🍕 Pizzas Congeladas', style: TextStyle(fontSize: 18)),
-            Text('Sistema de Pedidos', style: TextStyle(fontSize: 12)),
-          ],
+        title: Text(
+          '🍕 Sistema de Pedidos',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFff6b6b), Color(0xFFee5a24)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 1,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.black54,
+          indicator: BoxDecoration(
+            color: Color(0xFF2f3d4c),
+            borderRadius: BorderRadius.zero,
+          ),
           tabs: [
-            Tab(text: 'Pedidos', icon: Icon(Icons.shopping_cart)),
-            Tab(text: 'Historial', icon: Icon(Icons.history)),
+            Tab(text: 'Pedidos'),
+            Tab(text: 'Historial'),
           ],
         ),
       ),
@@ -358,405 +343,352 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
   }
 
   Widget _buildOrdersTab() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Cliente Section
-            _buildClientSection(),
-            SizedBox(height: 16),
-            
-            // BI Pizzas Section
-            _buildPizzaSection(
-              title: '🍕 BI PERSONALES',
-              pizzaKeys: ['bi_americana', 'bi_hawaiana', 'bi_peperoni'],
-            ),
-            SizedBox(height: 16),
-            
-            // Personal Pizzas Section
-            _buildPizzaSection(
-              title: '🍕 PERSONALES',
-              pizzaKeys: ['personal_americana', 'personal_hawaiana', 'personal_peperoni'],
-            ),
-            SizedBox(height: 16),
-            
-            // Delivery Section
-            _buildDeliverySection(),
-            SizedBox(height: 16),
-            
-            // Total Section
-            _buildTotalSection(),
-            SizedBox(height: 16),
-            
-            // Action Buttons
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildClientSection() {
-    return Container(
+    return SingleChildScrollView(
       padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFFe3f2fd),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '👤 Nombre del Cliente',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1976d2),
-            ),
-          ),
-          SizedBox(height: 8),
-          TextField(
-            controller: _clientNameController,
-            decoration: InputDecoration(
-              hintText: 'Ingresa el nombre del cliente',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Color(0xFF1976d2), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Color(0xFF1976d2), width: 2),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPizzaSection({required String title, required List<String> pizzaKeys}) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFFf8f9fa),
-        borderRadius: BorderRadius.circular(10),
-      ),
       child: Column(
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 16),
-          ...pizzaKeys.map((pizzaKey) => _buildPizzaItem(pizzaKey)).toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPizzaItem(String pizzaKey) {
-    final cost = pizzas[pizzaKey]?['cost'] ?? 0;
-    final suggested = pizzas[pizzaKey]?['suggested'] ?? 0;
-    final name = pizzaNames[pizzaKey] ?? '';
-    
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
+          // Cliente Section
+          _buildCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  'Cliente',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _clientNameController,
+                  decoration: InputDecoration(
+                    hintText: 'Nombre del cliente',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // BI Pizzas Section
+          _buildCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pizzas BI',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 12),
+                ..._buildPizzaItems(['bi_americana', 'bi_hawaiana', 'bi_peperoni']),
+              ],
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // Personal Pizzas Section
+          _buildCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pizzas Personales',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 12),
+                ..._buildPizzaItems(['personal_americana', 'personal_hawaiana', 'personal_peperoni']),
+              ],
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // Delivery Section
+          _buildCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Entrega',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: weekDays.map((day) {
+                    final isSelected = selectedDay == day;
+                    return GestureDetector(
+                      onTap: () => _selectDay(day),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Color(0xFF2f3d4c) : Colors.white,
+                          border: Border.all(
+                            color: isSelected ? Color(0xFF2f3d4c) : Colors.grey[300]!,
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          day,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // Total Section
+          _buildCard(
+            child: Column(
+              children: [
+                Text(
+                  'Total: S/${_calculateTotal().toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                  ),
+                ),
                 SizedBox(height: 4),
                 Text(
-                  'Costo: S/ ${cost.toStringAsFixed(2)} | Precio sugerido: S/ ${suggested.toStringAsFixed(2)}',
+                  'Precio sugerido: S/${_calculateSuggestedTotal().toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     color: Colors.grey[600],
                   ),
                 ),
               ],
             ),
           ),
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.remove, color: Colors.white, size: 20),
-                  onPressed: () => _updateQuantity(pizzaKey, -1),
-                ),
-              ),
-              SizedBox(width: 12),
-              Container(
-                width: 40,
-                child: Text(
-                  '${quantities[pizzaKey]}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+          
+          SizedBox(height: 16),
+          
+          // Action Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saveOrder,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF2f3d4c),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              SizedBox(width: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.add, color: Colors.white, size: 20),
-                  onPressed: () => _updateQuantity(pizzaKey, 1),
+              child: Text(
+                'Guardar Pedido',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDeliverySection() {
+  Widget _buildCard({required Widget child}) {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFFe3f2fd),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '📅 Día de Entrega',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1976d2),
-            ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
-          SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: weekDays.map((day) {
-              final isSelected = selectedDay == day;
-              return GestureDetector(
-                onTap: () => _selectDay(day),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Color(0xFF1976d2) : Colors.white,
-                    border: Border.all(color: Color(0xFF1976d2), width: 2),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    day,
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  List<Widget> _buildPizzaItems(List<String> pizzaKeys) {
+    return pizzaKeys.map((pizzaKey) {
+      final cost = pizzas[pizzaKey]?['cost'] ?? 0;
+      final suggested = pizzas[pizzaKey]?['suggested'] ?? 0;
+      final name = pizzaNames[pizzaKey] ?? '';
+      
+      return Container(
+        margin: EdgeInsets.only(bottom: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Color(0xFF1976d2),
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
                     ),
                   ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Costo: S/${cost.toStringAsFixed(2)} | Sugerido: S/${suggested.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _updateQuantity(pizzaKey, -1),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Icon(Icons.remove, size: 16, color: Colors.black54),
+                  ),
                 ),
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 12),
-          TextField(
-            controller: _monthController,
-            decoration: InputDecoration(
-              hintText: 'Mes (ej: Enero, Febrero...)',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Color(0xFF1976d2), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Color(0xFF1976d2), width: 2),
-              ),
+                SizedBox(width: 12),
+                Container(
+                  width: 24,
+                  child: Text(
+                    '${quantities[pizzaKey]}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () => _updateQuantity(pizzaKey, 1),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Icon(Icons.add, size: 16, color: Colors.black54),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotalSection() {
-    final total = _calculateTotal();
-    final suggestedTotal = _calculateSuggestedTotal();
-    
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Color(0xFF28a745),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '💰 TOTAL DEL PEDIDO',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'S/ ${total.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Precio sugerido: S/ ${suggestedTotal.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.9),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _saveOrder,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF28a745),
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: Text(
-              editingOrderIndex >= 0 ? '💾 Actualizar Pedido' : '💾 Guardar Pedido',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
+          ],
         ),
-        SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _clearOrder,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFdc3545),
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: Text(
-              '🗑️ Limpiar Todo',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-      ],
-    );
+      );
+    }).toList();
   }
 
   Widget _buildHistoryTab() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              '📋 Historial de Pedidos',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Historial de Pedidos',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
-          Expanded(
-            child: orderHistory.isEmpty
-                ? Center(
-                    child: Text(
-                      'No hay pedidos guardados',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(16),
-                    itemCount: orderHistory.length,
-                    itemBuilder: (context, index) {
-                      final reversedIndex = orderHistory.length - 1 - index;
-                      return _buildOrderItem(reversedIndex);
-                    },
-                  ),
-          ),
-          if (orderHistory.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _clearHistory,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFdc3545),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                  ),
+        ),
+        Expanded(
+          child: orderHistory.isEmpty
+              ? Center(
                   child: Text(
-                    '🗑️ Borrar Historial',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    'No hay pedidos guardados',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: EdgeInsets.all(16),
+                  itemCount: orderHistory.length,
+                  itemBuilder: (context, index) {
+                    final reversedIndex = orderHistory.length - 1 - index;
+                    return _buildOrderItem(reversedIndex);
+                  },
+                ),
+        ),
+        if (orderHistory.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _clearHistory,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                child: Text(
+                  'Borrar Historial',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -766,11 +698,16 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Color(0xFFf8f9fa),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border(
-          left: BorderSide(color: Colors.blue, width: 5),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(16),
@@ -788,27 +725,27 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
                   ),
                 ),
                 Text(
-                  'S/ ${order.total.toStringAsFixed(2)}',
+                  'S/${order.total.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF28a745),
+                    color: Colors.green[700],
                   ),
                 ),
               ],
             ),
             SizedBox(height: 8),
             Text(
-              '👤 Cliente: ${order.clientName}',
+              'Cliente: ${order.clientName}',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: Colors.black87,
               ),
             ),
             SizedBox(height: 4),
             Text(
-              '📅 Entrega: ${order.deliveryDay} de ${order.deliveryMonth}',
+              'Entrega: ${order.deliveryDay}',
               style: TextStyle(fontSize: 12, color: Colors.black87),
             ),
             SizedBox(height: 8),
@@ -823,7 +760,7 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
             }).toList(),
             SizedBox(height: 4),
             Text(
-              'Precio sugerido: S/ ${order.suggestedTotal.toStringAsFixed(2)}',
+              'Precio sugerido: S/${order.suggestedTotal.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[600],
@@ -836,11 +773,15 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
                   child: ElevatedButton(
                     onPressed: () => _editOrder(index),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF17a2b8),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                     child: Text(
-                      '✏️ Editar',
+                      'Editar',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -850,11 +791,15 @@ class _PizzaOrderScreenState extends State<PizzaOrderScreen>
                   child: ElevatedButton(
                     onPressed: () => _deleteOrder(index),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFdc3545),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                     child: Text(
-                      '🗑️ Eliminar',
+                      'Eliminar',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
