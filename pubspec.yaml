@@ -1,0 +1,25 @@
+name: pizza_order_app
+description: App de pedidos para pizzas congeladas
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.17.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.2
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Para personalizar el icono de la app (opcional)
+  # assets:
+  #   - images/pizza_icon.png
